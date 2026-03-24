@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trading Potential Profit Summary</title>
+
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"/>
+
+  <!-- Chart.js 4.x -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f8f9fa;
+    }
+    .display-title {
+      font-weight: 700;
+      letter-spacing: -1px;
+    }
+    .carousel-item {
+      min-height: 90vh;
+      padding: 2rem 1rem;
+      display: flex;
+      align-items: center;
+    }
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+    }
+    .table th {
+      background: #f1f3f5;
+      font-weight: 500;
+      color: #495057;
+    }
+    .euro { font-family: Consolas, monospace; font-weight: 500; }
+    .note {
+      background: #e6f9f4;
+      border-left: 5px solid #20c997;
+      padding: 1rem;
+      border-radius: 0 8px 8px 0;
+    }
+    .profit-green { color: #20c997 !important; font-weight: 600; }
+    h1, h2 { font-weight: 600; }
+    @media (max-width: 768px) {
+      .carousel-item { min-height: auto; padding: 1.5rem 0.8rem; }
+      h1 { font-size: 2.1rem; }
+      .table { font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="profitCarousel" class="carousel slide" data-bs-ride="true" data-bs-interval="false">
+    <!-- Indicators -->
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#profitCarousel" data-bs-slide-to="0" class="active"></button>
+      <button type="button" data-bs-target="#profitCarousel" data-bs-slide-to="1"></button>
+      <button type="button" data-bs-target="#profitCarousel" data-bs-slide-to="2"></button>
+      <button type="button" data-bs-target="#profitCarousel" data-bs-slide-to="3"></button>
+    </div>
+
+    <!-- Slide 1: Intro -->
+    <div class="carousel-item active">
+      <div class="container">
+        <div class="text-center mb-5">
+          <h1 class="display-title display-3 mb-3">Trading Potential Profit Summary</h1>
+          <p class="lead text-muted">Simple, consistent 2% per trade strategy – no compounding</p>
+        </div>
+
+        <div class="row g-5 align-items-center">
+          <div class="col-lg-6">
+            <div class="card p-4">
+              <h3 class="text-success mb-4">Strategy at a glance</h3>
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Position size</strong>: always 20% of starting balance</li>
+                <li class="list-group-item"><strong>Profit target</strong>: 2% of the trade amount</li>
+                <li class="list-group-item"><strong>Trades/day</strong>: 2 / 3 / 4 depending on account size</li>
+                <li class="list-group-item"><strong>Important</strong>: profits not reinvested – fixed base</li>
+              </ul>
+              <div class="note mt-4">
+                <strong>20 trading days/month assumed</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="card p-4 text-center">
+              <h5>Account split: 5 × 20%</h5>
+              <p class="text-muted small">Only one 20% portion used per trade</p>
+              <canvas id="introPie" height="280"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 2: €5,000 -->
+    <div class="carousel-item">
+      <div class="container">
+        <h2 class="text-center display-title mb-4">€5,000 Account</h2>
+        <p class="text-center text-muted mb-4">2 trades/day × €1,000 each → €40 daily potential</p>
+
+        <div class="row g-4">
+          <div class="col-lg-7">
+            <div class="card p-4">
+              <table class="table table-borderless align-middle">
+                <thead>
+                  <tr><th>TIMEFRAME</th><th>TRADES</th><th>TRADE AMT</th><th>PROFIT/TRADE</th><th class="text-end">TOTAL</th></tr>
+                </thead>
+                <tbody class="euro">
+                  <tr><td><strong>Daily</strong></td><td>2</td><td>€1,000</td><td>€20</td><td class="text-end profit-green">€40</td></tr>
+                  <tr><td><strong>Monthly</strong> <small>(20 days)</small></td><td>40</td><td>€1,000</td><td>€20</td><td class="text-end profit-green">€800</td></tr>
+                  <tr><td><strong>Yearly</strong> <small>(240 days)</small></td><td>480</td><td>€1,000</td><td>€20</td><td class="text-end profit-green">€9,600</td></tr>
+                </tbody>
+              </table>
+              <div class="note mt-3">
+                With 2 trades/day at €1,000 each → daily profit €40 (hypothetical)
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-5">
+            <div class="card p-4">
+              <h5 class="text-center mb-3">Profit Breakdown</h5>
+              <div style="height:320px"><canvas id="chart5k"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: €10k + €20k -->
+    <div class="carousel-item">
+      <div class="container">
+        <h2 class="text-center display-title mb-4">€10,000 & €20,000 Accounts</h2>
+        <p class="text-center text-muted mb-5">Same 20% rule – just more trades & bigger size</p>
+
+        <div class="row g-4 mb-5">
+          <!-- 10k -->
+          <div class="col-lg-6">
+            <div class="card p-4">
+              <h5 class="text-info mb-3">€10,000 Account (3 trades/day)</h5>
+              <table class="table table-borderless align-middle">
+                <thead><tr><th>TIMEFRAME</th><th>TRADES</th><th>AMT</th><th>PROFIT/TRADE</th><th class="text-end">TOTAL</th></tr></thead>
+                <tbody class="euro">
+                  <tr><td><strong>Daily</strong></td><td>3</td><td>€2,000</td><td>€40</td><td class="text-end text-info">€120</td></tr>
+                  <tr><td><strong>Monthly</strong></td><td>60</td><td>€2,000</td><td>€40</td><td class="text-end text-info">€2,400</td></tr>
+                  <tr><td><strong>Yearly</strong></td><td>720</td><td>€2,000</td><td>€40</td><td class="text-end text-info">€28,800</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 20k -->
+          <div class="col-lg-6">
+            <div class="card p-4">
+              <h5 class="text-warning mb-3">€20,000 Account (4 trades/day)</h5>
+              <table class="table table-borderless align-middle">
+                <thead><tr><th>TIMEFRAME</th><th>TRADES</th><th>AMT</th><th>PROFIT/TRADE</th><th class="text-end">TOTAL</th></tr></thead>
+                <tbody class="euro">
+                  <tr><td><strong>Daily</strong></td><td>4</td><td>€4,000</td><td>€80</td><td class="text-end text-warning">€320</td></tr>
+                  <tr><td><strong>Monthly</strong></td><td>80</td><td>€4,000</td><td>€80</td><td class="text-end text-warning">€6,400</td></tr>
+                  <tr><td><strong>Yearly</strong></td><td>960</td><td>€4,000</td><td>€80</td><td class="text-end text-warning">€76,800</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-4">
+          <h5 class="text-center mb-3">€10k vs €20k Comparison</h5>
+          <div style="height:340px"><canvas id="chart10vs20"></canvas></div>
+        </div>
+
+        <div class="note mt-4 text-center mx-auto" style="max-width:600px">
+          Scaling account size & trades proportionally increases profit potential while risk stays controlled (20% rule).
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Summary -->
+    <div class="carousel-item">
+      <div class="container">
+        <h2 class="text-center display-title mb-5">All Accounts – Side by Side</h2>
+
+        <div class="card p-4 mb-5">
+          <h5 class="text-center mb-4">Daily • Monthly • Yearly Comparison</h5>
+          <div style="height:400px"><canvas id="chartAll"></canvas></div>
+        </div>
+
+        <div class="row g-4 text-center">
+          <div class="col-md-4">
+            <div class="card p-4 h-100">
+              <h5>Small accounts work</h5>
+              <p class="text-muted">€5k → €9,600/year possible with discipline</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card p-4 h-100">
+              <h5>Risk stays limited</h5>
+              <p class="text-muted">Always max 20% per trade – capital protection first</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card p-4 h-100">
+              <h5>Scale sensibly</h5>
+              <p class="text-muted">Bigger balance + more trades = higher absolute profit</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-5">
+          <button class="btn btn-outline-success btn-lg px-5" onclick="document.querySelector('[data-bs-slide-to=\"0\"]').click()">
+            Back to Start
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        // Intro pie
+        new Chart(document.getElementById('introPie'), {
+          type: 'pie',
+          data: {
+            labels: ['Trade 1','Trade 2','Trade 3','Trade 4','Active'],
+            datasets: [{ data: [20,20,20,20,20], backgroundColor: ['#ced4da','#ced4da','#ced4da','#ced4da','#20c997'] }]
+          },
+          options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+
+        // 5k bar
+        new Chart(document.getElementById('chart5k'), {
+          type: 'bar',
+          data: {
+            labels: ['Daily','Monthly','Yearly'],
+            datasets: [{ label: 'Profit €', data: [40,800,9600], backgroundColor: '#20c997', borderRadius: 6 }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+
+        // 10k vs 20k
+        new Chart(document.getElementById('chart10vs20'), {
+          type: 'bar',
+          data: {
+            labels: ['Daily','Monthly','Yearly'],
+            datasets: [
+              { label: '€10,000', data: [120,2400,28800], backgroundColor: '#0dcaf0', borderRadius: 6 },
+              { label: '€20,000', data: [320,6400,76800], backgroundColor: '#ffc107', borderRadius: 6 }
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+
+        // All three
+        new Chart(document.getElementById('chartAll'), {
+          type: 'bar',
+          data: {
+            labels: ['Daily','Monthly','Yearly'],
+            datasets: [
+              { label: '5k',   data: [40,800,9600],   backgroundColor: '#20c997' },
+              { label: '10k',  data: [120,2400,28800], backgroundColor: '#0dcaf0' },
+              { label: '20k',  data: [320,6400,76800], backgroundColor: '#ffc107' }
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+
+        console.log("Trading presentation loaded ✓");
+      } catch (err) {
+        console.error("Chart init error:", err);
+      }
+    });
+  </script>
+</body>
+</html>
