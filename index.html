@@ -8,293 +8,302 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root { --primary: #1e3a8a; }
-    body { 
-      font-family: system-ui, -apple-system, sans-serif; 
-      background: #f8f9fa; 
-      line-height: 1.85; 
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f8f9fa;
       color: #333;
-      padding-bottom: 70px; /* give space for refined nav bar */
+      overflow: hidden;  /* no global scroll — each slide handles its own overflow, but we'll ensure content fits */
+      height: 100vh;
     }
-    .slide { 
-      display: none; 
-      padding: 25px 15px; 
-      min-height: 100vh;
+    /* slide container: exactly viewport height, no scrolling by default */
+    .slide {
+      display: none;
+      height: 100vh;
+      width: 100%;
+      overflow-y: auto;   /* fallback: if content still overflows, allow scroll, but we aim to prevent */
+      padding: 1rem 1rem 4rem 1rem;  /* extra bottom for fixed nav */
+      scrollbar-width: none; /* optional: hide scrollbar if appears (but ideally not needed) */
     }
-    .slide.active { display: block; }
-    h1 { font-size: 2.05rem; color: var(--primary); font-weight: 600; }
-    h2 { font-size: 1.65rem; color: var(--primary); margin-bottom: 1.2rem; font-weight: 600; }
-    
-    .card { 
-      border: none; 
-      box-shadow: 0 8px 30px rgba(0,0,0,0.1); 
-      border-radius: 18px; 
+    .slide.active { display: flex; flex-direction: column; justify-content: center; }
+    /* to ensure consistent vertical centering when content fits, but we'll use flex column */
+    .slide-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+      flex-shrink: 0;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+    h2 {
+      font-size: 1.4rem;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+    h4 {
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+    .card {
+      border: none;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      border-radius: 1rem;
       overflow: hidden;
+      background: white;
     }
-    .profit { 
-      font-size: 2.15rem; 
-      font-weight: 700; 
-      color: #0d9488; 
+    .profit {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #0d9488;
     }
-    .highlight { 
-      background: #e0f2fe; 
-      padding: 25px; 
-      border-radius: 14px; 
-      font-size: 1.15rem;
+    .highlight {
+      background: #e0f2fe;
+      padding: 0.8rem;
+      border-radius: 0.75rem;
+      font-size: 0.9rem;
     }
-    
-    /* ===== REFINED BOTTOM NAVIGATION – smaller, subtle ===== */
-    .nav-bottom { 
-      position: fixed; 
-      bottom: 0; 
-      left: 0; 
-      right: 0; 
-      background: rgba(255, 255, 255, 0.96);
+    /* compact tables */
+    table td {
+      padding: 0.5rem 0.8rem !important;
+      font-size: 0.9rem;
+    }
+    .chart-container {
+      height: 180px;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+    /* fixed bottom navigation */
+    .nav-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255,255,255,0.96);
       border-top: 1px solid #e2e8f0;
-      padding: 8px 0;
+      padding: 0.5rem 0;
       z-index: 100;
       backdrop-filter: blur(2px);
-      box-shadow: none; /* removed heavy shadow -> less intrusive */
     }
-    
-    /* buttons inside nav: compact & elegant */
     .nav-bottom .btn {
-      padding: 0.35rem 1.2rem;
-      font-size: 0.85rem;
-      font-weight: 500;
-      border-radius: 40px;
-      transition: all 0.2s ease;
-      letter-spacing: 0.3px;
+      padding: 0.3rem 1rem;
+      font-size: 0.8rem;
+      border-radius: 2rem;
     }
-    
-    /* make outline button more subtle */
-    .nav-bottom .btn-outline-primary {
-      border-width: 1px;
-      border-color: #cbd5e1;
-      color: #2c3e66;
-      background: transparent;
-    }
-    .nav-bottom .btn-outline-primary:hover {
+    #slideNumber {
+      font-size: 0.8rem;
       background: #f1f5f9;
-      border-color: #1e3a8a;
-      color: #1e3a8a;
+      padding: 0.2rem 0.8rem;
+      border-radius: 2rem;
     }
-    
-    .nav-bottom .btn-primary {
+    /* Responsive adjustments for smaller heights */
+    @media (max-height: 750px) {
+      .slide { padding: 0.8rem 1rem 3.5rem 1rem; }
+      h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.2rem; margin-bottom: 0.4rem; }
+      .card { margin-bottom: 0.5rem; }
+      .card-body, .card { padding: 0.8rem !important; }
+      .highlight { padding: 0.5rem; font-size: 0.8rem; }
+      table td { padding: 0.3rem 0.5rem !important; font-size: 0.8rem; }
+      .profit { font-size: 1.3rem; }
+      .chart-container { height: 140px; }
+      p, li { font-size: 0.85rem; line-height: 1.3; }
+      .fs-5 { font-size: 0.9rem !important; }
+      .btn-lg { padding: 0.5rem 1rem; font-size: 0.9rem; }
+    }
+    @media (max-width: 768px) {
+      h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.2rem; }
+      .profit { font-size: 1.3rem; }
+    }
+    /* ensure list items fit well */
+    ul, .list-unstyled {
+      margin-bottom: 0.5rem;
+      padding-left: 1rem;
+    }
+    li {
+      margin-bottom: 0.3rem;
+    }
+    .btn-primary {
       background: #1e3a8a;
       border: none;
-      box-shadow: none;
     }
-    .nav-bottom .btn-primary:hover {
+    .btn-primary:hover {
       background: #0f2b62;
-      transform: scale(0.97);
     }
-    
-    /* slide number indicator – lighter footprint */
-    #slideNumber {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: #4a5568;
-      background: #f1f5f9;
-      padding: 0.25rem 0.9rem;
-      border-radius: 30px;
-      letter-spacing: 0.2px;
+    /* prevent overflow */
+    img, canvas {
+      max-width: 100%;
     }
-    
-    table td { padding: 16px 12px; vertical-align: middle; font-size: 1.12rem; }
-
-    /* Mobile-First refinements: buttons even more compact on small devices */
-    @media (max-width: 767px) {
-      .slide { padding: 20px 12px; }
-      h1 { font-size: 1.9rem; }
-      h2 { font-size: 1.55rem; }
-      .fs-5, p, li { font-size: 1.18rem !important; }
-      .profit { font-size: 1.95rem; }
-      .card { margin-bottom: 25px; }
-      .chart-container { height: 260px; }
-      
-      /* smaller bottom nav buttons on mobile */
-      .nav-bottom {
-        padding: 6px 0;
-      }
-      .nav-bottom .btn {
-        padding: 0.25rem 1rem;
-        font-size: 0.78rem;
-      }
-      #slideNumber {
-        font-size: 0.75rem;
-        padding: 0.2rem 0.7rem;
-      }
-      .btn { 
-        padding: 12px 20px; 
-        font-size: 1rem; 
-      }
-      ul { padding-left: 8px; }
-      li { margin-bottom: 16px; }
-      .highlight { padding: 28px; font-size: 1.2rem; }
-    }
-
-    .chart-container {
-      position: relative;
-      height: 245px;
-      width: 100%;
-    }
-    
-    /* extra spacing for better scroll experience */
-    .container {
-      max-width: 1100px;
+    .text-center .btn {
+      margin-top: 0.5rem;
     }
   </style>
 </head>
 <body>
 
-<div class="container">
-
+<div class="container-fluid px-2">
   <!-- Slide 1 -->
-  <div id="slide1" class="slide active">
-    <div class="text-center mb-5">
-      <h1>Een Slimme, Gestructureerde Manier om Vermogen op te Bouwen</h1>
-      <p class="lead text-muted mt-3">
-        Deze gids geeft een duidelijke en praktische uitleg over hoe kapitaal slim kan worden ingezet — en hoe een gedisciplineerd tradingkader consistentie kan omzetten in meetbare financiële groei in de loop van de tijd.
-      </p>
-      <p class="mt-4"><strong>Het gaat niet om complexiteit.<br>Het gaat om structuur, duidelijkheid en uitvoering.</strong></p>
-    </div>
-
-    <div class="card p-5">
-      <h2>1. Begrip van Beleggen</h2>
-      <p class="fs-5">
-        Beleggen is het proces waarbij kapitaal wordt gebruikt om meer kapitaal te creëren.<br><br>
-        In plaats van geld op een traditionele spaarrekening te laten staan — waar het grotendeels passief blijft en langzaam groeit — plaatst beleggen uw kapitaal in activa, bedrijven en markten waar het actief werkt en samengestelde groei creëert.<br><br>
-        Een spaarrekening is gebouwd voor stabiliteit.<br>
-        Beleggen is gebouwd voor groei.<br><br>
-        Terwijl bankrente geleidelijke stijgingen geeft, verbindt beleggen uw kapitaal met echte economische activiteit — waar waarde wordt gecreëerd, opgeschaald en vermenigvuldigd.<br><br>
-        Naarmate die kansen groeien, groeit uw kapitaal mee — en verandert tijd, consistentie en structuur in een krachtige motor voor financiële vooruitgang.
-      </p>
-      <div class="highlight mt-4">
-        <strong>In eenvoudige woorden:</strong><br>
-        U plaatst uw geld waar vooruitgang plaatsvindt — en profiteert naarmate die vooruitgang zich opbouwt.
+  <div id="slide1" class="slide">
+    <div class="slide-content">
+      <div class="text-center mb-3">
+        <h1>Een Slimme, Gestructureerde Manier om Vermogen op te Bouwen</h1>
+        <p class="lead text-muted mt-2">
+          Deze gids geeft een duidelijke en praktische uitleg over hoe kapitaal slim kan worden ingezet — en hoe een gedisciplineerd tradingkader consistentie kan omzetten in meetbare financiële groei.
+        </p>
+        <p><strong>Het gaat niet om complexiteit.<br>Het gaat om structuur, duidelijkheid en uitvoering.</strong></p>
       </div>
-    </div>
-
-    <div class="text-center mt-5">
-      <button onclick="nextSlide()" class="btn btn-primary btn-lg">Verder →</button>
+      <div class="card p-3">
+        <h2>1. Begrip van Beleggen</h2>
+        <p>
+          Beleggen is het proces waarbij kapitaal wordt gebruikt om meer kapitaal te creëren.<br>
+          In plaats van geld op een traditionele spaarrekening te laten staan — waar het grotendeels passief blijft — plaatst beleggen uw kapitaal in activa, bedrijven en markten waar het actief werkt en samengestelde groei creëert.<br>
+          Een spaarrekening is gebouwd voor stabiliteit. Beleggen is gebouwd voor groei.<br>
+          Terwijl bankrente geleidelijke stijgingen geeft, verbindt beleggen uw kapitaal met echte economische activiteit — waar waarde wordt gecreëerd, opgeschaald en vermenigvuldigd.
+        </p>
+        <div class="highlight mt-2">
+          <strong>In eenvoudige woorden:</strong><br>
+          U plaatst uw geld waar vooruitgang plaatsvindt — en profiteert naarmate die vooruitgang zich opbouwt.
+        </div>
+      </div>
+      <div class="text-center mt-3">
+        <button onclick="nextSlide()" class="btn btn-primary btn-lg">Verder →</button>
+      </div>
     </div>
   </div>
 
   <!-- Slide 2 -->
   <div id="slide2" class="slide">
-    <h2 class="text-center mb-4">Hoe Dit Er in de Praktijk Uitziet</h2>
-    <div class="card p-5">
-      <p class="fs-5">Met een gestructureerde tradingaanpak:</p>
-      <ul class="fs-5">
-        <li class="mb-3">• Een €5.000 rekening kan ongeveer <strong>€9.600 per jaar</strong> genereren</li>
-        <li class="mb-3">• Een €10.000 rekening volgt hetzelfde kader met een hogere verdienmogelijkheid</li>
-        <li class="mb-3">• Grotere rekeningen versterken de totale resultaten terwijl dezelfde gedisciplineerde structuur behouden blijft</li>
-      </ul>
+    <div class="slide-content">
+      <h2 class="text-center mb-3">Hoe Dit Er in de Praktijk Uitziet</h2>
+      <div class="card p-4">
+        <p>Met een gestructureerde tradingaanpak:</p>
+        <ul>
+          <li>Een €5.000 rekening kan ongeveer <strong>€9.600 per jaar</strong> genereren</li>
+          <li>Een €10.000 rekening volgt hetzelfde kader met een hogere verdienmogelijkheid</li>
+          <li>Grotere rekeningen versterken de totale resultaten terwijl dezelfde gedisciplineerde structuur behouden blijft</li>
+        </ul>
+      </div>
     </div>
   </div>
 
   <!-- Slide 3 -->
   <div id="slide3" class="slide">
-    <h2 class="text-center mb-4">2. Een Eenvoudige Tradingaanpak</h2>
-    <div class="card p-5">
-      <p class="fs-5 mb-4">Laten we de methode opsplitsen in een duidelijk en uitvoerbaar systeem.</p>
-      
-      <h4 class="mb-3">De Kernstrategie</h4>
-      <ul class="fs-5 list-unstyled">
-        <li class="mb-3">• Begin met uw beschikbare beleggingskapitaal</li>
-        <li class="mb-3">• Wijs slechts 20% van uw fondsen toe per trade</li>
-        <li class="mb-3">• Dit verdeelt uw kapitaal natuurlijk in vijf strategische posities</li>
-        <li class="mb-3">• Elke trade richt zich op een rendement van 2%</li>
-        <li class="mb-3">• Het proces kan meerdere keren per dag worden uitgevoerd</li>
-        <li class="mb-3">• Uw kernkapitaal blijft gestructureerd, georganiseerd en continu actief</li>
-      </ul>
-
-      <div class="highlight mt-4">
-        <h4 class="mb-3">Hoe Het Dagelijks Werkt</h4>
-        <p class="mb-0">
-          Deze aanpak is gebaseerd op precisie en herhaling.<br><br>
-          In plaats van te vertrouwen op grote, onvoorspelbare bewegingen, richt het zich op het vastleggen van kleine, consistente winsten — die zich in de loop van de tijd opbouwen tot significante resultaten.<br><br>
-          Het is een methode gedreven door discipline, niet door toeval.<br>
-          Door structuur, niet door emotie.
-        </p>
+    <div class="slide-content">
+      <h2 class="text-center mb-3">2. Een Eenvoudige Tradingaanpak</h2>
+      <div class="card p-3">
+        <p class="mb-2">Laten we de methode opsplitsen in een duidelijk en uitvoerbaar systeem.</p>
+        <h4>De Kernstrategie</h4>
+        <ul>
+          <li>Begin met uw beschikbare beleggingskapitaal</li>
+          <li>Wijs slechts 20% van uw fondsen toe per trade</li>
+          <li>Dit verdeelt uw kapitaal natuurlijk in vijf strategische posities</li>
+          <li>Elke trade richt zich op een rendement van 2%</li>
+          <li>Het proces kan meerdere keren per dag worden uitgevoerd</li>
+          <li>Uw kernkapitaal blijft gestructureerd, georganiseerd en continu actief</li>
+        </ul>
+        <div class="highlight mt-2">
+          <h4 class="mb-1">Hoe Het Dagelijks Werkt</h4>
+          <p class="mb-0">
+            Deze aanpak is gebaseerd op precisie en herhaling.<br>
+            In plaats van te vertrouwen op grote, onvoorspelbare bewegingen, richt het zich op het vastleggen van kleine, consistente winsten — die zich in de loop van de tijd opbouwen tot significante resultaten.<br>
+            Het is een methode gedreven door discipline, niet door toeval. Door structuur, niet door emotie.
+          </p>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Slide 4: €5.000 -->
   <div id="slide4" class="slide">
-    <h2 class="text-center mb-4">3. Voorbeeld €5.000 Rekening</h2>
-    <div class="card p-4 text-center">
-      <table class="table table-borderless mb-4">
-        <tr><td class="text-start">Trades per dag</td><td class="text-end">2</td></tr>
-        <tr><td class="text-start">Bedrag per trade</td><td class="text-end">€1.000</td></tr>
-        <tr><td class="text-start">Winst per trade</td><td class="text-end">€20</td></tr>
-        <tr class="border-top"><td class="text-start"><strong>Dagelijks</strong></td><td class="profit text-end">€40</td></tr>
-        <tr><td class="text-start"><strong>Maandelijks</strong></td><td class="profit text-end">€800</td></tr>
-        <tr><td class="text-start"><strong>Jaarlijks</strong></td><td class="profit text-end">€9.600</td></tr>
-      </table>
-      <div class="chart-container">
-        <canvas id="chart5k"></canvas>
+    <div class="slide-content">
+      <h2 class="text-center mb-2">3. Voorbeeld €5.000 Rekening</h2>
+      <div class="card p-3 text-center">
+        <table class="table table-borderless mb-2 w-100">
+          <tr><td class="text-start">Trades per dag</td><td class="text-end">2</td></tr>
+          <tr><td class="text-start">Bedrag per trade</td><td class="text-end">€1.000</td></tr>
+          <tr><td class="text-start">Winst per trade</td><td class="text-end">€20</td></tr>
+          <tr class="border-top"><td class="text-start"><strong>Dagelijks</strong></td><td class="profit text-end">€40</td></tr>
+          <tr><td class="text-start"><strong>Maandelijks</strong></td><td class="profit text-end">€800</td></tr>
+          <tr><td class="text-start"><strong>Jaarlijks</strong></td><td class="profit text-end">€9.600</td></tr>
+        </table>
+        <div class="chart-container">
+          <canvas id="chart5k"></canvas>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Slide 5: €10.000 -->
   <div id="slide5" class="slide">
-    <h2 class="text-center mb-4">4. Voorbeeld €10.000 Rekening</h2>
-    <div class="card p-4 text-center">
-      <table class="table table-borderless mb-4">
-        <tr><td class="text-start">Trades per dag</td><td class="text-end">3</td></tr>
-        <tr><td class="text-start">Bedrag per trade</td><td class="text-end">€2.000</td></tr>
-        <tr><td class="text-start">Winst per trade</td><td class="text-end">€40</td></tr>
-        <tr class="border-top"><td class="text-start"><strong>Dagelijks</strong></td><td class="profit text-end">€120</td></tr>
-        <tr><td class="text-start"><strong>Maandelijks</strong></td><td class="profit text-end">€2.400</td></tr>
-        <tr><td class="text-start"><strong>Jaarlijks</strong></td><td class="profit text-end">€28.800</td></tr>
-      </table>
-      <div class="chart-container">
-        <canvas id="chart10k"></canvas>
+    <div class="slide-content">
+      <h2 class="text-center mb-2">4. Voorbeeld €10.000 Rekening</h2>
+      <div class="card p-3 text-center">
+        <table class="table table-borderless mb-2 w-100">
+          <tr><td class="text-start">Trades per dag</td><td class="text-end">3</td></tr>
+          <tr><td class="text-start">Bedrag per trade</td><td class="text-end">€2.000</td></tr>
+          <tr><td class="text-start">Winst per trade</td><td class="text-end">€40</td></tr>
+          <tr class="border-top"><td class="text-start"><strong>Dagelijks</strong></td><td class="profit text-end">€120</td></tr>
+          <tr><td class="text-start"><strong>Maandelijks</strong></td><td class="profit text-end">€2.400</td></tr>
+          <tr><td class="text-start"><strong>Jaarlijks</strong></td><td class="profit text-end">€28.800</td></tr>
+        </table>
+        <div class="chart-container">
+          <canvas id="chart10k"></canvas>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Slide 6: €20.000 -->
   <div id="slide6" class="slide">
-    <h2 class="text-center mb-4">5. Voorbeeld €20.000 Rekening</h2>
-    <div class="card p-4 text-center">
-      <table class="table table-borderless mb-4">
-        <tr><td class="text-start">Trades per dag</td><td class="text-end">4</td></tr>
-        <tr><td class="text-start">Bedrag per trade</td><td class="text-end">€4.000</td></tr>
-        <tr><td class="text-start">Winst per trade</td><td class="text-end">€80</td></tr>
-        <tr class="border-top"><td class="text-start"><strong>Dagelijks</strong></td><td class="profit text-end">€320</td></tr>
-        <tr><td class="text-start"><strong>Maandelijks</strong></td><td class="profit text-end">€6.400</td></tr>
-        <tr><td class="text-start"><strong>Jaarlijks</strong></td><td class="profit text-end">€76.800</td></tr>
-      </table>
-      <div class="chart-container">
-        <canvas id="chart20k"></canvas>
+    <div class="slide-content">
+      <h2 class="text-center mb-2">5. Voorbeeld €20.000 Rekening</h2>
+      <div class="card p-3 text-center">
+        <table class="table table-borderless mb-2 w-100">
+          <tr><td class="text-start">Trades per dag</td><td class="text-end">4</td></tr>
+          <tr><td class="text-start">Bedrag per trade</td><td class="text-end">€4.000</td></tr>
+          <tr><td class="text-start">Winst per trade</td><td class="text-end">€80</td></tr>
+          <tr class="border-top"><td class="text-start"><strong>Dagelijks</strong></td><td class="profit text-end">€320</td></tr>
+          <tr><td class="text-start"><strong>Maandelijks</strong></td><td class="profit text-end">€6.400</td></tr>
+          <tr><td class="text-start"><strong>Jaarlijks</strong></td><td class="profit text-end">€76.800</td></tr>
+        </table>
+        <div class="chart-container">
+          <canvas id="chart20k"></canvas>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Slide 7 -->
   <div id="slide7" class="slide">
-    <h2 class="text-center mb-4">6. Waarom Deze Aanpak Opvalt</h2>
-    <div class="card p-5">
-      <ul class="fs-5">
-        <li class="mb-3">• Kapitaal wordt ingezet met duidelijkheid en intentie</li>
-        <li class="mb-3">• De structuur is eenvoudig, herhaalbaar en schaalbaar</li>
-        <li class="mb-3">• Kleine winsten bouwen zich op tot substantiële resultaten in de loop van de tijd</li>
-        <li class="mb-3">• Groei neemt natuurlijk toe naarmate de rekening groter wordt</li>
-        <li class="mb-3">• Het proces blijft consistent ongeacht het kapitaal niveau</li>
-        <li class="mb-3">• Discipline verandert dagelijkse acties in langetermijn financiële momentum</li>
-      </ul>
-    </div>
-
-    <div class="text-center mt-5">
-      <p class="text-muted">Klaar om de volgende stap te zetten? Laten we bespreken hoe u kunt beginnen.</p>
+    <div class="slide-content">
+      <h2 class="text-center mb-2">6. Waarom Deze Aanpak Opvalt</h2>
+      <div class="card p-3">
+        <ul class="mb-0">
+          <li>Kapitaal wordt ingezet met duidelijkheid en intentie</li>
+          <li>De structuur is eenvoudig, herhaalbaar en schaalbaar</li>
+          <li>Kleine winsten bouwen zich op tot substantiële resultaten in de loop van de tijd</li>
+          <li>Groei neemt natuurlijk toe naarmate de rekening groter wordt</li>
+          <li>Het proces blijft consistent ongeacht het kapitaal niveau</li>
+          <li>Discipline verandert dagelijkse acties in langetermijn financiële momentum</li>
+        </ul>
+      </div>
+      <div class="text-center mt-3">
+        <p class="text-muted">Klaar om de volgende stap te zetten? Laten we bespreken hoe u kunt beginnen.</p>
+      </div>
     </div>
   </div>
 
-  <!-- Bottom Navigation - refined: smaller, subtle, minimal footprint -->
+  <!-- Bottom Navigation -->
   <div class="nav-bottom">
     <div class="container d-flex justify-content-between align-items-center">
       <button onclick="prevSlide()" id="prevBtn" class="btn btn-outline-primary">← Vorige</button>
@@ -302,18 +311,17 @@
       <button onclick="nextSlide()" id="nextBtn" class="btn btn-primary">Volgende →</button>
     </div>
   </div>
-
 </div>
 
 <script>
-// Global chart references
 let chart5k = null, chart10k = null, chart20k = null;
 let currentSlide = 1;
 const totalSlides = 7;
 
 function showSlide(n) {
   document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
-  document.getElementById('slide' + n).classList.add('active');
+  const activeSlide = document.getElementById('slide' + n);
+  activeSlide.classList.add('active');
   
   document.getElementById('slideNumber').innerHTML = `Dia <strong>${n}</strong> van ${totalSlides}`;
   
@@ -322,9 +330,9 @@ function showSlide(n) {
   if (prevBtn) prevBtn.disabled = (n === 1);
   if (nextBtn) nextBtn.disabled = (n === totalSlides);
 
-  window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  // reset scroll position of active slide to top
+  activeSlide.scrollTop = 0;
 
-  // create charts when corresponding slides become active
   if (n === 4) createChart5k();
   if (n === 5) createChart10k();
   if (n === 6) createChart20k();
@@ -353,9 +361,9 @@ function createChart5k() {
       type: 'bar',
       data: { 
         labels: ['Dagelijks', 'Maandelijks', 'Jaarlijks'], 
-        datasets: [{ label: '€5.000 Rekening', data: [40, 800, 9600], backgroundColor: '#60a5fa', borderRadius: 8 }] 
+        datasets: [{ label: '€5.000 Rekening', data: [40, 800, 9600], backgroundColor: '#60a5fa', borderRadius: 6 }] 
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: euro } } } }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: euro, font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } } }
     });
   }
 }
@@ -369,9 +377,9 @@ function createChart10k() {
       type: 'bar',
       data: { 
         labels: ['Dagelijks', 'Maandelijks', 'Jaarlijks'], 
-        datasets: [{ label: '€10.000 Rekening', data: [120, 2400, 28800], backgroundColor: '#14b8a6', borderRadius: 8 }] 
+        datasets: [{ label: '€10.000 Rekening', data: [120, 2400, 28800], backgroundColor: '#14b8a6', borderRadius: 6 }] 
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: euro } } } }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: euro, font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } } }
     });
   }
 }
@@ -385,17 +393,15 @@ function createChart20k() {
       type: 'bar',
       data: { 
         labels: ['Dagelijks', 'Maandelijks', 'Jaarlijks'], 
-        datasets: [{ label: '€20.000 Rekening', data: [320, 6400, 76800], backgroundColor: '#1e40af', borderRadius: 8 }] 
+        datasets: [{ label: '€20.000 Rekening', data: [320, 6400, 76800], backgroundColor: '#1e40af', borderRadius: 6 }] 
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: euro } } } }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: euro, font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } } }
     });
   }
 }
 
-// initialise slide
 showSlide(1);
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
