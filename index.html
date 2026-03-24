@@ -17,32 +17,31 @@
       font-family: system-ui, -apple-system, sans-serif;
       background: #f8f9fa;
       color: #333;
-      overflow: hidden;  /* no global scroll — each slide handles its own overflow, but we'll ensure content fits */
+      overflow: hidden;
       height: 100vh;
     }
-    /* slide container: exactly viewport height, no scrolling by default */
     .slide {
       display: none;
       height: 100vh;
       width: 100%;
-      overflow-y: auto;   /* fallback: if content still overflows, allow scroll, but we aim to prevent */
-      padding: 1rem 1rem 4rem 1rem;  /* extra bottom for fixed nav */
-      scrollbar-width: none; /* optional: hide scrollbar if appears (but ideally not needed) */
+      overflow-y: auto;
+      padding: 1rem 1rem 4rem 1rem;
     }
-    .slide.active { display: flex; flex-direction: column; justify-content: center; }
-    /* to ensure consistent vertical centering when content fits, but we'll use flex column */
+    .slide.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
     .slide-content {
       max-width: 1100px;
       margin: 0 auto;
       width: 100%;
-      flex-shrink: 0;
     }
     h1 {
       font-size: 1.8rem;
       color: var(--primary);
-      font-weight: 600;
+      font-weight: 700;
       margin-bottom: 0.5rem;
-      line-height: 1.2;
     }
     h2 {
       font-size: 1.4rem;
@@ -50,20 +49,24 @@
       margin-bottom: 0.75rem;
       font-weight: 600;
     }
-    h4 {
-      font-size: 1.1rem;
-      margin-bottom: 0.25rem;
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
     }
     .card {
       border: none;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-      border-radius: 1rem;
-      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      border-radius: 1.25rem;
       background: white;
+      transition: transform 0.1s ease;
+    }
+    .investment-card {
+      background: linear-gradient(135deg, #ffffff 0%, #fef9f0 100%);
+      border-bottom: 3px solid var(--primary);
     }
     .profit {
-      font-size: 1.6rem;
-      font-weight: 700;
+      font-size: 1.8rem;
+      font-weight: 800;
       color: #0d9488;
     }
     .highlight {
@@ -72,17 +75,19 @@
       border-radius: 0.75rem;
       font-size: 0.9rem;
     }
-    /* compact tables */
     table td {
-      padding: 0.5rem 0.8rem !important;
-      font-size: 0.9rem;
+      padding: 0.6rem 0.8rem !important;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #f0f2f5;
+    }
+    .table-borderless td {
+      border: none;
     }
     .chart-container {
       height: 180px;
       width: 100%;
       margin-top: 0.5rem;
     }
-    /* fixed bottom navigation */
     .nav-bottom {
       position: fixed;
       bottom: 0;
@@ -105,47 +110,38 @@
       padding: 0.2rem 0.8rem;
       border-radius: 2rem;
     }
-    /* Responsive adjustments for smaller heights */
+    /* responsive adjustments for smaller heights */
     @media (max-height: 750px) {
-      .slide { padding: 0.8rem 1rem 3.5rem 1rem; }
-      h1 { font-size: 1.5rem; }
+      .slide { padding: 0.6rem 1rem 3.5rem 1rem; }
+      h1 { font-size: 1.4rem; }
       h2 { font-size: 1.2rem; margin-bottom: 0.4rem; }
-      .card { margin-bottom: 0.5rem; }
-      .card-body, .card { padding: 0.8rem !important; }
-      .highlight { padding: 0.5rem; font-size: 0.8rem; }
-      table td { padding: 0.3rem 0.5rem !important; font-size: 0.8rem; }
-      .profit { font-size: 1.3rem; }
+      .card { padding: 0.8rem !important; }
+      .profit { font-size: 1.4rem; }
       .chart-container { height: 140px; }
-      p, li { font-size: 0.85rem; line-height: 1.3; }
-      .fs-5 { font-size: 0.9rem !important; }
-      .btn-lg { padding: 0.5rem 1rem; font-size: 0.9rem; }
+      p, li { font-size: 0.8rem; }
+      table td { padding: 0.3rem 0.5rem !important; font-size: 0.8rem; }
     }
     @media (max-width: 768px) {
-      h1 { font-size: 1.5rem; }
+      h1 { font-size: 1.4rem; }
       h2 { font-size: 1.2rem; }
-      .profit { font-size: 1.3rem; }
-    }
-    /* ensure list items fit well */
-    ul, .list-unstyled {
-      margin-bottom: 0.5rem;
-      padding-left: 1rem;
-    }
-    li {
-      margin-bottom: 0.3rem;
     }
     .btn-primary {
       background: #1e3a8a;
       border: none;
+      transition: 0.2s;
     }
     .btn-primary:hover {
       background: #0f2b62;
+      transform: scale(0.98);
     }
-    /* prevent overflow */
-    img, canvas {
-      max-width: 100%;
-    }
-    .text-center .btn {
-      margin-top: 0.5rem;
+    .investment-badge {
+      display: inline-block;
+      background: #1e3a8a10;
+      padding: 0.2rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: #1e3a8a;
     }
   </style>
 </head>
@@ -188,9 +184,9 @@
       <div class="card p-4">
         <p>Met een gestructureerde tradingaanpak:</p>
         <ul>
-          <li>Een €5.000 rekening kan ongeveer <strong>€9.600 per jaar</strong> genereren</li>
-          <li>Een €10.000 rekening volgt hetzelfde kader met een hogere verdienmogelijkheid</li>
-          <li>Grotere rekeningen versterken de totale resultaten terwijl dezelfde gedisciplineerde structuur behouden blijft</li>
+          <li>Een €5.000 investering kan ongeveer <strong>€9.600 per jaar</strong> genereren</li>
+          <li>Een €10.000 investering volgt hetzelfde kader met een hogere verdienmogelijkheid</li>
+          <li>Grotere investeringen versterken de totale resultaten terwijl dezelfde gedisciplineerde structuur behouden blijft</li>
         </ul>
       </div>
     </div>
@@ -223,62 +219,71 @@
     </div>
   </div>
 
-  <!-- Slide 4: €5.000 -->
+  <!-- Slide 4: €5.000 Investment -->
   <div id="slide4" class="slide">
     <div class="slide-content">
-      <h2 class="text-center mb-2">3. Voorbeeld €5.000 Rekening</h2>
-      <div class="card p-3 text-center">
+      <div class="text-center mb-2">
+        <h2 class="d-inline-flex align-items-center gap-2">💰 €5.000 <span class="investment-badge">INVESTMENT</span></h2>
+      </div>
+      <div class="card investment-card p-3 text-center">
         <table class="table table-borderless mb-2 w-100">
-          <tr><td class="text-start">Trades per dag</td><td class="text-end">2</td></tr>
-          <tr><td class="text-start">Bedrag per trade</td><td class="text-end">€1.000</td></tr>
-          <tr><td class="text-start">Winst per trade</td><td class="text-end">€20</td></tr>
-          <tr class="border-top"><td class="text-start"><strong>Dagelijks</strong></td><td class="profit text-end">€40</td></tr>
-          <tr><td class="text-start"><strong>Maandelijks</strong></td><td class="profit text-end">€800</td></tr>
-          <tr><td class="text-start"><strong>Jaarlijks</strong></td><td class="profit text-end">€9.600</td></tr>
+          <tr><td class="text-start"><strong>Trades per dag</strong></td><td class="text-end fw-bold">2</td></tr>
+          <tr><td class="text-start"><strong>Bedrag per trade</strong></td><td class="text-end">€1.000</td></tr>
+          <tr><td class="text-start"><strong>Winst per trade (2%)</strong></td><td class="text-end">€20</td></tr>
+          <tr class="border-top"><td class="text-start"><strong>📅 Dagelijks totaal</strong></td><td class="profit text-end">€40</td></tr>
+          <tr><td class="text-start"><strong>📆 Maandelijks totaal</strong></td><td class="profit text-end">€800</td></tr>
+          <tr><td class="text-start"><strong>📈 Jaarlijks totaal</strong></td><td class="profit text-end">€9.600</td></tr>
         </table>
         <div class="chart-container">
           <canvas id="chart5k"></canvas>
         </div>
+        <div class="mt-2 small text-muted">* Gebaseerd op 2 trades/dag, 20 trading dagen/maand</div>
       </div>
     </div>
   </div>
 
-  <!-- Slide 5: €10.000 -->
+  <!-- Slide 5: €10.000 Investment -->
   <div id="slide5" class="slide">
     <div class="slide-content">
-      <h2 class="text-center mb-2">4. Voorbeeld €10.000 Rekening</h2>
-      <div class="card p-3 text-center">
+      <div class="text-center mb-2">
+        <h2 class="d-inline-flex align-items-center gap-2">💎 €10.000 <span class="investment-badge">INVESTMENT</span></h2>
+      </div>
+      <div class="card investment-card p-3 text-center">
         <table class="table table-borderless mb-2 w-100">
-          <tr><td class="text-start">Trades per dag</td><td class="text-end">3</td></tr>
-          <tr><td class="text-start">Bedrag per trade</td><td class="text-end">€2.000</td></tr>
-          <tr><td class="text-start">Winst per trade</td><td class="text-end">€40</td></tr>
-          <tr class="border-top"><td class="text-start"><strong>Dagelijks</strong></td><td class="profit text-end">€120</td></tr>
-          <tr><td class="text-start"><strong>Maandelijks</strong></td><td class="profit text-end">€2.400</td></tr>
-          <tr><td class="text-start"><strong>Jaarlijks</strong></td><td class="profit text-end">€28.800</td></tr>
+          <tr><td class="text-start"><strong>Trades per dag</strong></td><td class="text-end fw-bold">3</td></tr>
+          <tr><td class="text-start"><strong>Bedrag per trade</strong></td><td class="text-end">€2.000</td></tr>
+          <tr><td class="text-start"><strong>Winst per trade (2%)</strong></td><td class="text-end">€40</td></tr>
+          <tr class="border-top"><td class="text-start"><strong>📅 Dagelijks totaal</strong></td><td class="profit text-end">€120</td></tr>
+          <tr><td class="text-start"><strong>📆 Maandelijks totaal</strong></td><td class="profit text-end">€2.400</td></tr>
+          <tr><td class="text-start"><strong>📈 Jaarlijks totaal</strong></td><td class="profit text-end">€28.800</td></tr>
         </table>
         <div class="chart-container">
           <canvas id="chart10k"></canvas>
         </div>
+        <div class="mt-2 small text-muted">* Gebaseerd op 3 trades/dag, 20 trading dagen/maand</div>
       </div>
     </div>
   </div>
 
-  <!-- Slide 6: €20.000 -->
+  <!-- Slide 6: €20.000 Investment -->
   <div id="slide6" class="slide">
     <div class="slide-content">
-      <h2 class="text-center mb-2">5. Voorbeeld €20.000 Rekening</h2>
-      <div class="card p-3 text-center">
+      <div class="text-center mb-2">
+        <h2 class="d-inline-flex align-items-center gap-2">🚀 €20.000 <span class="investment-badge">INVESTMENT</span></h2>
+      </div>
+      <div class="card investment-card p-3 text-center">
         <table class="table table-borderless mb-2 w-100">
-          <tr><td class="text-start">Trades per dag</td><td class="text-end">4</td></tr>
-          <tr><td class="text-start">Bedrag per trade</td><td class="text-end">€4.000</td></tr>
-          <tr><td class="text-start">Winst per trade</td><td class="text-end">€80</td></tr>
-          <tr class="border-top"><td class="text-start"><strong>Dagelijks</strong></td><td class="profit text-end">€320</td></tr>
-          <tr><td class="text-start"><strong>Maandelijks</strong></td><td class="profit text-end">€6.400</td></tr>
-          <tr><td class="text-start"><strong>Jaarlijks</strong></td><td class="profit text-end">€76.800</td></tr>
+          <tr><td class="text-start"><strong>Trades per dag</strong></td><td class="text-end fw-bold">4</td></tr>
+          <tr><td class="text-start"><strong>Bedrag per trade</strong></td><td class="text-end">€4.000</td></tr>
+          <tr><td class="text-start"><strong>Winst per trade (2%)</strong></td><td class="text-end">€80</td></tr>
+          <tr class="border-top"><td class="text-start"><strong>📅 Dagelijks totaal</strong></td><td class="profit text-end">€320</td></tr>
+          <tr><td class="text-start"><strong>📆 Maandelijks totaal</strong></td><td class="profit text-end">€6.400</td></tr>
+          <tr><td class="text-start"><strong>📈 Jaarlijks totaal</strong></td><td class="profit text-end">€76.800</td></tr>
         </table>
         <div class="chart-container">
           <canvas id="chart20k"></canvas>
         </div>
+        <div class="mt-2 small text-muted">* Gebaseerd op 4 trades/dag, 20 trading dagen/maand</div>
       </div>
     </div>
   </div>
@@ -330,7 +335,6 @@ function showSlide(n) {
   if (prevBtn) prevBtn.disabled = (n === 1);
   if (nextBtn) nextBtn.disabled = (n === totalSlides);
 
-  // reset scroll position of active slide to top
   activeSlide.scrollTop = 0;
 
   if (n === 4) createChart5k();
@@ -361,9 +365,9 @@ function createChart5k() {
       type: 'bar',
       data: { 
         labels: ['Dagelijks', 'Maandelijks', 'Jaarlijks'], 
-        datasets: [{ label: '€5.000 Rekening', data: [40, 800, 9600], backgroundColor: '#60a5fa', borderRadius: 6 }] 
+        datasets: [{ label: '€5.000 Investering', data: [40, 800, 9600], backgroundColor: '#3b82f6', borderRadius: 8, barPercentage: 0.65 }] 
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: euro, font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } } }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `€${ctx.raw.toLocaleString('de-DE')}` } } }, scales: { y: { beginAtZero: true, ticks: { callback: euro, font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } } }
     });
   }
 }
@@ -377,9 +381,9 @@ function createChart10k() {
       type: 'bar',
       data: { 
         labels: ['Dagelijks', 'Maandelijks', 'Jaarlijks'], 
-        datasets: [{ label: '€10.000 Rekening', data: [120, 2400, 28800], backgroundColor: '#14b8a6', borderRadius: 6 }] 
+        datasets: [{ label: '€10.000 Investering', data: [120, 2400, 28800], backgroundColor: '#14b8a6', borderRadius: 8, barPercentage: 0.65 }] 
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: euro, font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } } }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `€${ctx.raw.toLocaleString('de-DE')}` } } }, scales: { y: { beginAtZero: true, ticks: { callback: euro, font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } } }
     });
   }
 }
@@ -393,9 +397,9 @@ function createChart20k() {
       type: 'bar',
       data: { 
         labels: ['Dagelijks', 'Maandelijks', 'Jaarlijks'], 
-        datasets: [{ label: '€20.000 Rekening', data: [320, 6400, 76800], backgroundColor: '#1e40af', borderRadius: 6 }] 
+        datasets: [{ label: '€20.000 Investering', data: [320, 6400, 76800], backgroundColor: '#1e40af', borderRadius: 8, barPercentage: 0.65 }] 
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: euro, font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } } }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `€${ctx.raw.toLocaleString('de-DE')}` } } }, scales: { y: { beginAtZero: true, ticks: { callback: euro, font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } } }
     });
   }
 }
